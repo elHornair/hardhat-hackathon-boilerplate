@@ -25,10 +25,27 @@ contract Harbergia {
         require(parcelId < map_size, "Inexisting Parcel");
 
         if (owners[parcelId] != 0x0000000000000000000000000000000000000000) {
-            return (owners[parcelId], prices[parcelId], colors[parcelId]);
+            return (owners[parcelId], prices[parcelId], (bytes(colors[parcelId]).length == 0 ? default_color : colors[parcelId]));
         }
 
         return (default_owner, default_price, default_color);
+    }
+
+    function buyParcel(uint parcelId, uint price, uint reselling_price) external {
+        require(parcelId < map_size, "Inexisting Parcel");
+        require(price == prices[parcelId], "Parcel must be bought at current offering price");
+
+        // TODO: if enough money, then transfer
+        owners[parcelId] = msg.sender;
+        prices[parcelId] = reselling_price;
+    }
+
+    function setParcelColor(uint parcelId, string memory new_color) external {
+        require(parcelId < map_size, "Inexisting Parcel");
+        require(owners[parcelId] == msg.sender, "Only parcel owner can change color");
+
+        // TODO: check if this is a valid color
+        colors[parcelId] = new_color;
     }
 }
 
