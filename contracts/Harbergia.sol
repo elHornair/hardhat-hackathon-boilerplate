@@ -17,7 +17,7 @@ contract Harbergia {
     constructor() {
         map_size = 16*9*10;
         default_owner = address(this);
-        default_price = 1;
+        default_price = 0;
         default_color = "000000";
     }
 

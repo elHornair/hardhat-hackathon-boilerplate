@@ -23,7 +23,7 @@ describe("Harbergia contract", function () {
       const parcelInfo = await harbergia.getParcelInfo(0);
 
       expect(parcelInfo[0]).to.equal(harbergia.address);// harbergia.address is the contracts address
-      expect(parcelInfo[1]).to.equal(1);
+      expect(parcelInfo[1]).to.equal(0);
       expect(parcelInfo[2]).to.equal('000000');
     });
   });
