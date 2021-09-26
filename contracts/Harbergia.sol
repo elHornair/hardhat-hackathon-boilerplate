@@ -5,13 +5,13 @@ import "hardhat/console.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 contract Harbergia is ERC20 {
-    address public owner;// TODO: rename this and/or default_owner to make it clear what it is exactly
+    address public contract_owner;
 
     uint map_size;
 
-    address default_owner;
-    uint default_price;
-    string default_color;
+    address default_parcel_owner;
+    uint default_parcel_price;
+    string default_parcel_color;
 
     mapping(uint => address) public owners;
     mapping(uint => uint) public prices;
@@ -19,27 +19,27 @@ contract Harbergia is ERC20 {
 
     constructor() ERC20("Harbergia Decentralised Guilder", "HDG") {
         map_size = 16*9*10;
-        default_owner = address(this);
-        default_price = 0;
-        default_color = "000000";
-        owner = msg.sender;
+        default_parcel_owner = address(this);// by default Harbergia (so the contract itself) owns all the parcels
+        default_parcel_price = 0;
+        default_parcel_color = "000000";
+        contract_owner = msg.sender;
 
         mint(1000000 * 10**super.decimals());
     }
 
     function mint(uint amount) public {
-        require(msg.sender == owner, "Only owner is allowed to mint");
-        _mint(owner, amount);
+        require(msg.sender == contract_owner, "Only contract owner is allowed to mint");
+        _mint(contract_owner, amount);
     }
 
     function getParcelInfo(uint parcelId) public view returns (address, uint, string memory) {
         require(parcelId < map_size, "Inexisting Parcel");
 
         if (owners[parcelId] != 0x0000000000000000000000000000000000000000) {
-            return (owners[parcelId], prices[parcelId], (bytes(colors[parcelId]).length == 0 ? default_color : colors[parcelId]));
+            return (owners[parcelId], prices[parcelId], (bytes(colors[parcelId]).length == 0 ? default_parcel_color : colors[parcelId]));
         }
 
-        return (default_owner, default_price, default_color);
+        return (default_parcel_owner, default_parcel_price, default_parcel_color);
     }
 
     function buyParcel(uint parcelId, uint price, uint reselling_price) external {
@@ -50,7 +50,7 @@ contract Harbergia is ERC20 {
         if (owners[parcelId] != 0x0000000000000000000000000000000000000000) {
             transfer(owners[parcelId], prices[parcelId]);
         } else {
-            transfer(default_owner, default_price);
+            transfer(default_parcel_owner, default_parcel_price);
         }
 
         owners[parcelId] = msg.sender;
