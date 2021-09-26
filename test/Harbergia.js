@@ -17,6 +17,50 @@ describe("Harbergia contract", function () {
     await harbergia.deployed();
   });
 
+  describe("Deployment", function () {
+    it("Should set decimals to 18", async function () {
+      expect(await harbergia.decimals()).to.equal(18);
+    });
+
+    it("Should mint one million as initial amount", async function () {
+      expect(await harbergia.totalSupply()).to.equal(BigNumber.from(1000000).mul(BigNumber.from(10).pow(18)));
+    });
+
+    it("Should assign the total supply of tokens to the owner", async function () {
+      const ownerBalance = await harbergia.balanceOf(owner.address);
+      expect(await harbergia.totalSupply()).to.equal(ownerBalance);
+    });
+  });
+
+  describe("Minting", function () {
+    it("Should fail if non owner attempts to mint", async function () {
+      await expect(harbergia.connect(addr1).mint(1000)).to.be.revertedWith("Only contract owner is allowed to mint");
+    });
+
+    it("Should allow owner to mint", async function () {
+      const initialSupply = await harbergia.totalSupply();
+      const amountToMint = BigNumber.from(1000).mul(BigNumber.from(10).pow(18));
+      await harbergia.connect(owner).mint(amountToMint);
+      const updatedSupply = await harbergia.totalSupply();
+
+      expect(updatedSupply).to.equal(initialSupply.add(amountToMint));
+      expect(initialSupply.toString()).to.equal('1000000000000000000000000');
+      expect(updatedSupply.toString()).to.equal('1001000000000000000000000');
+    });
+  });
+
+  describe("Transactions", function () {
+    it("Should transfer tokens between accounts", async function () {
+      const initialBalance = await harbergia.balanceOf(addr1.address);
+      const amountToSend = BigNumber.from(20).mul(BigNumber.from(10).pow(18));
+      await harbergia.connect(owner).transfer(addr1.address, amountToSend);
+      const updatedBalance = await harbergia.balanceOf(addr1.address);
+
+      expect(initialBalance).to.equal(BigNumber.from(0).mul(BigNumber.from(10).pow(18)));
+      expect(updatedBalance).to.equal(amountToSend);
+    });
+  });
+
   describe("Parcel info", async function () {
     it("Should fail if parcel doesn't exist", async function () {
       await expect(harbergia.getParcelInfo(99999)).to.be.revertedWith("Inexisting Parcel");

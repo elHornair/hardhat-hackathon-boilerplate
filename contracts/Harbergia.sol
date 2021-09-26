@@ -5,7 +5,7 @@ import "hardhat/console.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 contract Harbergia is ERC20 {
-    address public contract_owner;
+    address contract_owner;
 
     uint map_size;
 
