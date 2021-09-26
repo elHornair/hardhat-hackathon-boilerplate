@@ -7,6 +7,7 @@ contract Harbergia {
     uint map_size;
 
     address default_owner;
+    address bank;
     uint default_price;
     string default_color;
 
@@ -14,11 +15,12 @@ contract Harbergia {
     mapping(uint => uint) public prices;
     mapping(uint => string) public colors;
 
-    constructor() {
+    constructor(address hdg_bank) {
         map_size = 16*9*10;
         default_owner = address(this);
         default_price = 0;
         default_color = "000000";
+        bank = hdg_bank;
     }
 
     function getParcelInfo(uint parcelId) public view returns (address, uint, string memory) {
@@ -31,9 +33,15 @@ contract Harbergia {
         return (default_owner, default_price, default_color);
     }
 
+    function getBank() public view returns (address) {
+        return bank;
+    }
+
     function buyParcel(uint parcelId, uint price, uint reselling_price) external {
         require(parcelId < map_size, "Inexisting Parcel");
         require(price == prices[parcelId], "Parcel must be bought at current offering price");
+
+        // TODO: now somehow import the HDG smart contract and interact with it
 
         // TODO: if enough money, then transfer
         owners[parcelId] = msg.sender;

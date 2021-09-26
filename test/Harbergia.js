@@ -1,18 +1,34 @@
 const { expect } = require("chai");
+const {BigNumber} = require("ethers");
 
 describe("Harbergia contract", function () {
+  let HDGContract;
+  let hdgBank;
+
   let HarbergiaContract;
   let harbergia;
 
   let owner;
   let addr1;
 
+  before(async function () {
+    HDGContract = await ethers.getContractFactory("HDG");
+    hdgBank = await HDGContract.deploy();
+    await hdgBank.deployed();
+  });
+
   beforeEach(async function () {
     HarbergiaContract = await ethers.getContractFactory("Harbergia");
     [owner, addr1] = await ethers.getSigners();
 
-    harbergia = await HarbergiaContract.deploy();
+    harbergia = await HarbergiaContract.deploy(hdgBank.address);
     await harbergia.deployed();
+  });
+
+  describe("Deployment", function () {
+    it("Should set the right hdg bank address", async function () {
+      expect(await harbergia.getBank()).to.equal(hdgBank.address);
+    });
   });
 
   describe("Parcel info", async function () {
