@@ -13,9 +13,9 @@ contract Harbergia is ERC20 {
     uint default_parcel_price;
     string default_parcel_color;
 
-    mapping(uint => address) public owners;
-    mapping(uint => uint) public prices;
-    mapping(uint => string) public colors;
+    mapping(uint => address) owners;
+    mapping(uint => uint) prices;
+    mapping(uint => string) colors;
 
     constructor() ERC20("Harbergia Decentralised Guilder", "HDG") {
         map_size = 16*9*10;
