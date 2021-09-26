@@ -1,6 +1,10 @@
 const { expect } = require("chai");
 const {BigNumber} = require("ethers");
 
+function amountToNativeValue(amount) {
+  return BigNumber.from(amount).mul(BigNumber.from(10).pow(18));
+}
+
 describe("Harbergia contract", function () {
   let HarbergiaContract;
   let harbergia;
@@ -23,7 +27,7 @@ describe("Harbergia contract", function () {
     });
 
     it("Should mint one million as initial amount", async function () {
-      expect(await harbergia.totalSupply()).to.equal(BigNumber.from(1000000).mul(BigNumber.from(10).pow(18)));
+      expect(await harbergia.totalSupply()).to.equal(amountToNativeValue(1000000));
     });
 
     it("Should assign the total supply of tokens to the owner", async function () {
@@ -39,7 +43,7 @@ describe("Harbergia contract", function () {
 
     it("Should allow owner to mint", async function () {
       const initialSupply = await harbergia.totalSupply();
-      const amountToMint = BigNumber.from(1000).mul(BigNumber.from(10).pow(18));
+      const amountToMint = amountToNativeValue(1000);
       await harbergia.connect(owner).mint(amountToMint);
       const updatedSupply = await harbergia.totalSupply();
 
@@ -52,11 +56,11 @@ describe("Harbergia contract", function () {
   describe("Transactions", function () {
     it("Should transfer tokens between accounts", async function () {
       const initialBalance = await harbergia.balanceOf(addr1.address);
-      const amountToSend = BigNumber.from(20).mul(BigNumber.from(10).pow(18));
+      const amountToSend = amountToNativeValue(20);
       await harbergia.connect(owner).transfer(addr1.address, amountToSend);
       const updatedBalance = await harbergia.balanceOf(addr1.address);
 
-      expect(initialBalance).to.equal(BigNumber.from(0).mul(BigNumber.from(10).pow(18)));
+      expect(initialBalance).to.equal(amountToNativeValue(0));
       expect(updatedBalance).to.equal(amountToSend);
     });
   });
@@ -105,21 +109,21 @@ describe("Harbergia contract", function () {
 
     it("Should transfer ownership and tokens correctly", async function () {
       // give some money to addr2
-      await harbergia.connect(owner).transfer(addr2.address, BigNumber.from(20).mul(BigNumber.from(10).pow(18)));
+      await harbergia.connect(owner).transfer(addr2.address, amountToNativeValue(20));
 
       // addr1 buys it from Harbergia
-      await harbergia.connect(addr1).buyParcel(3, 0, BigNumber.from(2).mul(BigNumber.from(10).pow(18)));
+      await harbergia.connect(addr1).buyParcel(3, 0, amountToNativeValue(2));
       const parcelInfo = await harbergia.getParcelInfo(3);
       expect(parcelInfo[0]).to.equal(addr1.address);
 
       // addr2 buys it from addr1
-      await harbergia.connect(addr2).buyParcel(3, BigNumber.from(2).mul(BigNumber.from(10).pow(18)), BigNumber.from(3).mul(BigNumber.from(10).pow(18)));
+      await harbergia.connect(addr2).buyParcel(3, amountToNativeValue(2), amountToNativeValue(3));
 
       const parcelInfoNew = await harbergia.getParcelInfo(3);
       expect(parcelInfoNew[0]).to.equal(addr2.address);
 
-      expect(await harbergia.balanceOf(addr1.address)).to.equal(BigNumber.from(2).mul(BigNumber.from(10).pow(18)));
-      expect(await harbergia.balanceOf(addr2.address)).to.equal(BigNumber.from(18).mul(BigNumber.from(10).pow(18)));
+      expect(await harbergia.balanceOf(addr1.address)).to.equal(amountToNativeValue(2));
+      expect(await harbergia.balanceOf(addr2.address)).to.equal(amountToNativeValue(18));
     });
   });
 
