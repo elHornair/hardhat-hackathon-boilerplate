@@ -2,13 +2,14 @@
 pragma solidity ^0.8.0;
 
 import "hardhat/console.sol";
-import "./HDG.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-contract Harbergia {
+contract Harbergia is ERC20 {
+    address public owner;// TODO: rename this and/or default_owner to make it clear what it is exactly
+
     uint map_size;
 
     address default_owner;
-    HDG bank;
     uint default_price;
     string default_color;
 
@@ -16,12 +17,19 @@ contract Harbergia {
     mapping(uint => uint) public prices;
     mapping(uint => string) public colors;
 
-    constructor(address bank_address) {
+    constructor() ERC20("Harbergia Decentralised Guilder", "HDG") {
         map_size = 16*9*10;
         default_owner = address(this);
         default_price = 0;
         default_color = "000000";
-        bank = HDG(bank_address);
+        owner = msg.sender;
+
+        mint(1000000 * 10**super.decimals());
+    }
+
+    function mint(uint amount) public {
+        require(msg.sender == owner, "Only owner is allowed to mint");
+        _mint(owner, amount);
     }
 
     function getParcelInfo(uint parcelId) public view returns (address, uint, string memory) {
@@ -34,21 +42,15 @@ contract Harbergia {
         return (default_owner, default_price, default_color);
     }
 
-    function getBankAddress() public view returns (address) {
-        return address(bank);
-    }
-
     function buyParcel(uint parcelId, uint price, uint reselling_price) external {
         require(parcelId < map_size, "Inexisting Parcel");
         require(price == prices[parcelId], "Parcel must be bought at current offering price");
-        require(bank.balanceOf(msg.sender) >= price, "Balance of message sender must be higher than price");
+        require(balanceOf(msg.sender) >= price, "Balance of message sender must be higher than price");
 
-        // TODO: problem: if I now call another contract (the bank), then msg.sender is Harbergia, not the buyer of the parcel
-        // TODO: fix: Harbergia itself needs to be the Token Contract
         if (owners[parcelId] != 0x0000000000000000000000000000000000000000) {
-            bank.transfer(owners[parcelId], prices[parcelId]);
+            transfer(owners[parcelId], prices[parcelId]);
         } else {
-            bank.transfer(default_owner, default_price);
+            transfer(default_owner, default_price);
         }
 
         owners[parcelId] = msg.sender;

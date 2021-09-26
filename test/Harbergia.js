@@ -2,9 +2,6 @@ const { expect } = require("chai");
 const {BigNumber} = require("ethers");
 
 describe("Harbergia contract", function () {
-  let HDGContract;
-  let hdgBank;
-
   let HarbergiaContract;
   let harbergia;
 
@@ -12,24 +9,12 @@ describe("Harbergia contract", function () {
   let addr1;
   let addr2;
 
-  before(async function () {
-    HDGContract = await ethers.getContractFactory("HDG");
-    hdgBank = await HDGContract.deploy();
-    await hdgBank.deployed();
-  });
-
   beforeEach(async function () {
     HarbergiaContract = await ethers.getContractFactory("Harbergia");
     [owner, addr1, addr2] = await ethers.getSigners();
 
-    harbergia = await HarbergiaContract.deploy(hdgBank.address);
+    harbergia = await HarbergiaContract.deploy();
     await harbergia.deployed();
-  });
-
-  describe("Deployment", function () {
-    it("Should set the right hdg bank address", async function () {
-      expect(await harbergia.getBankAddress()).to.equal(hdgBank.address);
-    });
   });
 
   describe("Parcel info", async function () {
@@ -75,16 +60,22 @@ describe("Harbergia contract", function () {
     });
 
     it("Should transfer ownership and tokens correctly", async function () {
-      const amountToSend = BigNumber.from(20).mul(BigNumber.from(10).pow(18));
-      await hdgBank.connect(owner).transfer(addr2.address, amountToSend);
+      // give some money to addr2
+      await harbergia.connect(owner).transfer(addr2.address, BigNumber.from(20).mul(BigNumber.from(10).pow(18)));
 
-      // await harbergia.connect(addr1).buyParcel(3, 0, BigNumber.from(2).mul(BigNumber.from(10).pow(18)));
-      // await harbergia.connect(addr2).buyParcel(3, BigNumber.from(2).mul(BigNumber.from(10).pow(18)), BigNumber.from(3).mul(BigNumber.from(10).pow(18)));
+      // addr1 buys it from Harbergia
+      await harbergia.connect(addr1).buyParcel(3, 0, BigNumber.from(2).mul(BigNumber.from(10).pow(18)));
+      const parcelInfo = await harbergia.getParcelInfo(3);
+      expect(parcelInfo[0]).to.equal(addr1.address);
 
-      // expect(hdgBank.balanceOf(addr1)).to.equal(BigNumber.from(2).mul(BigNumber.from(10).pow(18)));
-      // expect(hdgBank.balanceOf(addr2)).to.equal(BigNumber.from(18).mul(BigNumber.from(10).pow(18)));
-      // TODO: also test ownership here!
+      // addr2 buys it from addr1
+      await harbergia.connect(addr2).buyParcel(3, BigNumber.from(2).mul(BigNumber.from(10).pow(18)), BigNumber.from(3).mul(BigNumber.from(10).pow(18)));
 
+      const parcelInfoNew = await harbergia.getParcelInfo(3);
+      expect(parcelInfoNew[0]).to.equal(addr2.address);
+
+      expect(await harbergia.balanceOf(addr1.address)).to.equal(BigNumber.from(2).mul(BigNumber.from(10).pow(18)));
+      expect(await harbergia.balanceOf(addr2.address)).to.equal(BigNumber.from(18).mul(BigNumber.from(10).pow(18)));
     });
   });
 
