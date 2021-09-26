@@ -2,12 +2,13 @@
 pragma solidity ^0.8.0;
 
 import "hardhat/console.sol";
+import "./HDG.sol";
 
 contract Harbergia {
     uint map_size;
 
     address default_owner;
-    address bank;
+    HDG bank;
     uint default_price;
     string default_color;
 
@@ -15,12 +16,12 @@ contract Harbergia {
     mapping(uint => uint) public prices;
     mapping(uint => string) public colors;
 
-    constructor(address hdg_bank) {
+    constructor(address bank_address) {
         map_size = 16*9*10;
         default_owner = address(this);
         default_price = 0;
         default_color = "000000";
-        bank = hdg_bank;
+        bank = HDG(bank_address);
     }
 
     function getParcelInfo(uint parcelId) public view returns (address, uint, string memory) {
@@ -33,8 +34,8 @@ contract Harbergia {
         return (default_owner, default_price, default_color);
     }
 
-    function getBank() public view returns (address) {
-        return bank;
+    function getBankAddress() public view returns (address) {
+        return address(bank);
     }
 
     function buyParcel(uint parcelId, uint price, uint reselling_price) external {

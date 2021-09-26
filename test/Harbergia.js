@@ -27,7 +27,7 @@ describe("Harbergia contract", function () {
 
   describe("Deployment", function () {
     it("Should set the right hdg bank address", async function () {
-      expect(await harbergia.getBank()).to.equal(hdgBank.address);
+      expect(await harbergia.getBankAddress()).to.equal(hdgBank.address);
     });
   });
 
