@@ -10,6 +10,7 @@ describe("Harbergia contract", function () {
 
   let owner;
   let addr1;
+  let addr2;
 
   before(async function () {
     HDGContract = await ethers.getContractFactory("HDG");
@@ -19,7 +20,7 @@ describe("Harbergia contract", function () {
 
   beforeEach(async function () {
     HarbergiaContract = await ethers.getContractFactory("Harbergia");
-    [owner, addr1] = await ethers.getSigners();
+    [owner, addr1, addr2] = await ethers.getSigners();
 
     harbergia = await HarbergiaContract.deploy(hdgBank.address);
     await harbergia.deployed();
@@ -66,6 +67,24 @@ describe("Harbergia contract", function () {
       expect(parcelInfo[0]).to.equal(addr1.address);
       expect(parcelInfo[1]).to.equal(5);
       expect(parcelInfo[2]).to.equal('000000');
+    });
+
+    it("Should fail if buyer's balance is too low", async function () {
+      await harbergia.connect(addr1).buyParcel(2, 0, 2);
+      await expect(harbergia.connect(addr2).buyParcel(2, 2, 3)).to.be.revertedWith("Balance of message sender must be higher than price");
+    });
+
+    it("Should transfer ownership and tokens correctly", async function () {
+      const amountToSend = BigNumber.from(20).mul(BigNumber.from(10).pow(18));
+      await hdgBank.connect(owner).transfer(addr2.address, amountToSend);
+
+      // await harbergia.connect(addr1).buyParcel(3, 0, BigNumber.from(2).mul(BigNumber.from(10).pow(18)));
+      // await harbergia.connect(addr2).buyParcel(3, BigNumber.from(2).mul(BigNumber.from(10).pow(18)), BigNumber.from(3).mul(BigNumber.from(10).pow(18)));
+
+      // expect(hdgBank.balanceOf(addr1)).to.equal(BigNumber.from(2).mul(BigNumber.from(10).pow(18)));
+      // expect(hdgBank.balanceOf(addr2)).to.equal(BigNumber.from(18).mul(BigNumber.from(10).pow(18)));
+      // TODO: also test ownership here!
+
     });
   });
 

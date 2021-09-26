@@ -41,10 +41,16 @@ contract Harbergia {
     function buyParcel(uint parcelId, uint price, uint reselling_price) external {
         require(parcelId < map_size, "Inexisting Parcel");
         require(price == prices[parcelId], "Parcel must be bought at current offering price");
+        require(bank.balanceOf(msg.sender) >= price, "Balance of message sender must be higher than price");
 
-        // TODO: now somehow import the HDG smart contract and interact with it
+        // TODO: problem: if I now call another contract (the bank), then msg.sender is Harbergia, not the buyer of the parcel
+        // TODO: fix: Harbergia itself needs to be the Token Contract
+        if (owners[parcelId] != 0x0000000000000000000000000000000000000000) {
+            bank.transfer(owners[parcelId], prices[parcelId]);
+        } else {
+            bank.transfer(default_owner, default_price);
+        }
 
-        // TODO: if enough money, then transfer
         owners[parcelId] = msg.sender;
         prices[parcelId] = reselling_price;
     }
